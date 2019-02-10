@@ -91,7 +91,7 @@ namespace duplicatedFilesScanner
                 //{
                 //    return;
                 //}
-                string str = ("size:" + GetFileSize(item[0].size)).PadRight(15) + ("count:" + item.Count).PadRight(12) + "path:"+item[0].path;
+                string str = ("size:" + GetFileSize(item[0].size)).PadRight(15) + ("count:" + item.Count).PadRight(12) + "path:" + item[0].path;
                 TreeNode node = new TreeNode(str);
 
                 node.Tag = item;
@@ -131,8 +131,8 @@ namespace duplicatedFilesScanner
             {
                 DirectoryInfo info = new DirectoryInfo(folderPath);
                 ScanFilesRecursively(info);
-            }           
-        } 
+            }
+        }
         private void ScanFilesRecursively(DirectoryInfo folder)
         {
             try
@@ -182,7 +182,7 @@ namespace duplicatedFilesScanner
                         p.Start();
                     });
 
-                    ToolStripMenuItem menu2= new ToolStripMenuItem();
+                    ToolStripMenuItem menu2 = new ToolStripMenuItem();
                     menu2.Text = "open file";
                     menu2.Click += new System.EventHandler((sender1, e1) =>
                     {
@@ -192,14 +192,19 @@ namespace duplicatedFilesScanner
                         p.Start();
                     });
 
-                    ToolStripMenuItem menu3= new ToolStripMenuItem();
+                    ToolStripMenuItem menu3 = new ToolStripMenuItem();
                     menu3.Text = "delete";
                     menu3.Click += new System.EventHandler((sender1, e1) =>
                     {
-      
+                        if (MessageBox.Show("are you sure to delete this file?", "warning", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                        {
+                            FileInfo file = new FileInfo(selectedNode.Text);
+                            file.Delete();
+                            selectedNode.Parent.Nodes.Remove(selectedNode);
+                        }
                     });
                     this.contextMenuStripTreeNode.Items.Clear();
-                    this.contextMenuStripTreeNode.Items.AddRange(new ToolStripItem[]{ menu1,menu2,menu3});
+                    this.contextMenuStripTreeNode.Items.AddRange(new ToolStripItem[] { menu1, menu2, menu3 });
                     this.contextMenuStripTreeNode.Show(MousePosition.X, MousePosition.Y);
                 }
                 else //fileGroup node selected
@@ -218,7 +223,7 @@ namespace duplicatedFilesScanner
                     });
 
                     this.contextMenuStripTreeNode.Items.Clear();
-                    this.contextMenuStripTreeNode.Items.AddRange(new ToolStripItem[] { menu1,menu2 });
+                    this.contextMenuStripTreeNode.Items.AddRange(new ToolStripItem[] { menu1, menu2 });
                     this.contextMenuStripTreeNode.Show(MousePosition.X, MousePosition.Y);
                 }
             }
@@ -226,8 +231,21 @@ namespace duplicatedFilesScanner
 
         private void start2ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SelectPath selectPathDialog = new SelectPath((paths)=> { start(paths); });
+            SelectPath selectPathDialog = new SelectPath((paths) => { start(paths); });
             selectPathDialog.ShowDialog();
+        }
+
+        private void treeView1_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            var selectedNode = e.Node;
+            if (selectedNode.Parent != null)
+            {
+                Process p = new Process();
+                p.StartInfo.FileName = "explorer.exe";
+                p.StartInfo.Arguments = selectedNode.Text;
+                p.Start();
+            }
+
         }
     }
 }
