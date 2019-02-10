@@ -213,13 +213,37 @@ namespace duplicatedFilesScanner
                     menu1.Text = "compute hash";
                     menu1.Click += new System.EventHandler((sender1, e1) =>
                     {
-                        //todo
+                      
+                        List<string> md5list = new List<string>();
+
+                        foreach (TreeNode fileNode in selectedNode.Nodes)
+                        {
+                            System.Security.Cryptography.MD5 calcer = System.Security.Cryptography.MD5.Create();
+                            FileStream fs = new FileStream(fileNode.Text, FileMode.Open);
+                            var hash = calcer.ComputeHash(fs);
+                            calcer.Clear();
+                            fs.Close();
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for (int i = 0; i < hash.Length; i++)
+                            {
+                                stringBuilder.Append(hash[i].ToString("x2"));
+                            }
+                            md5list.Add(stringBuilder.ToString());
+                        }
+                        string str = "";
+                        foreach (var item in md5list)
+                        {
+                            str += item + "\r\n";
+                        }
+                        MessageBox.Show(str);
                     });
                     ToolStripMenuItem menu2 = new ToolStripMenuItem();
                     menu2.Text = "compare content";
                     menu2.Click += new System.EventHandler((sender1, e1) =>
                     {
-                        //todo
+                        bool issame = CompareFile(selectedNode.Nodes[0].Text, selectedNode.Nodes[1].Text);
+                        MessageBox.Show(issame ? "内容完全一致" : "内容不一致");
+
                     });
 
                     this.contextMenuStripTreeNode.Items.Clear();
@@ -247,5 +271,36 @@ namespace duplicatedFilesScanner
             }
 
         }
+
+        private bool CompareFile(string firstFile, string secondFile)
+        {
+            if (!File.Exists(firstFile) || !File.Exists(secondFile))
+            {
+                return false;
+            }
+            if (firstFile == secondFile)
+            {
+                return true;
+            }
+            int firstFileByte = 0;
+            int secondFileByte = 0;
+            FileStream secondFileStream = new FileStream(secondFile, FileMode.Open);
+            FileStream firstFileStream = new FileStream(firstFile, FileMode.Open);
+            if (firstFileStream.Length != secondFileStream.Length)
+            {
+                firstFileStream.Close();
+                secondFileStream.Close();
+                return false;
+            }
+            do
+            {
+                firstFileByte = firstFileStream.ReadByte();
+                secondFileByte = secondFileStream.ReadByte();
+            } while ((firstFileByte == secondFileByte) && (firstFileByte != -1));
+            firstFileStream.Close();
+            secondFileStream.Close();
+            return (firstFileByte == secondFileByte);
+        }
+
     }
 }
